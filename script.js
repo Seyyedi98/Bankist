@@ -9,6 +9,11 @@ const btnCloseModal = document.querySelector('.btn--close-modal');
 const btnsOpenModal = document.querySelectorAll('.btn--show-modal');
 const btnScrollTo = document.querySelector('.btn--scroll-to');
 const section1 = document.querySelector('#section--1');
+const nav = document.querySelector('.nav');
+const tabs = document.querySelectorAll('.operations__tab');
+const tabsContainer = document.querySelector('.operations__tab-container');
+const tabsContent = document.querySelectorAll('.operations__content');
+const header = document.querySelector('.header');
 
 const openModal = function () {
   modal.classList.remove('hidden');
@@ -86,6 +91,132 @@ document.querySelector('.nav__links').addEventListener('click', function (e) {
 });
 
 ////////////////////////////////////////////////
+/////         Tabbed Components             ////
+////////////////////////////////////////////////
+// Lecture 13-13
+
+// tabs.forEach(t => t.addEventListener('click', () => console.log('TAB')));
+// Use event deligation to prevent processing slowdown
+
+tabsContainer.addEventListener('click', function (e) {
+  // !!! Important solution:
+  const clicked = e.target.closest('.operations__tab');
+  // Clicked tab will stored in 'clicked'
+  // console.log(clicked);
+
+  // Guard Class - Ignore if clicked on empty area, to prevent returning null
+  if (!clicked) return;
+
+  // Remove active classes
+  tabs.forEach(t => t.classList.remove('operations__tab--active'));
+  tabsContent.forEach(c => c.classList.remove('operations__content--active'));
+
+  // Active tab
+  clicked.classList.add('operations__tab--active');
+
+  // Active Content Area
+  document
+    .querySelector(`.operations__content--${clicked.dataset.tab}`)
+    .classList.add('operations__content--active');
+});
+
+////////////////////////////////////////////////
+/////       Nav links fade animation        ////
+////////////////////////////////////////////////
+
+// no more need to pass opacity in this function
+const handleHover = function (e, opacity) {
+  // console.log(this);
+  if (e.target.classList.contains('nav__link')) {
+    const link = e.target;
+    const siblings = link.closest('.nav').querySelectorAll('.nav__link');
+    const logo = link.closest('.nav').querySelector('img');
+
+    siblings.forEach(el => {
+      // if (el !== link) el.style.opacity = opacity;
+      if (el !== link) el.style.opacity = this;
+    });
+    // logo.style.opacity = opacity;
+    logo.style.opacity = this;
+  }
+};
+
+// Here js expects a function, not a function that returns a value,
+// so we can't call handleHover(e, 0.5)
+// nav.addEventListener('mouseover', handleHover);
+
+// nav.addEventListener('mouseover', function (e) {
+//   handleHover(e, 0.5);
+// });
+
+nav.addEventListener('mouseover', handleHover.bind(0.5));
+
+nav.addEventListener('mouseout', handleHover.bind(1));
+
+////////////////////////////////////////////////
+/////          Sticky Navigation            ////
+////////////////////////////////////////////////
+
+// Scroll event
+// Using scroll event makes performance issues
+const initialCoords = section1.getBoundingClientRect();
+
+// window.addEventListener('scroll', function (e) {
+//   // console.log(window.scrollY);
+//   if (this.window.scrollY > initialCoords.top) nav.classList.add('sticky');
+//   else nav.classList.remove('sticky');
+// });
+
+// Sticky Navigation using intersection observer
+
+const navHeight = nav.getBoundingClientRect().height;
+
+const stickyNav = function (entires) {
+  const [entry] = entires;
+  // console.log(entry);
+
+  if (!entry.isIntersecting) nav.classList.add('sticky');
+  else nav.classList.remove('sticky');
+};
+
+const headerObserver = new IntersectionObserver(stickyNav, {
+  root: null,
+  threshold: 0,
+  rootMargin: `-${navHeight}px`,
+});
+headerObserver.observe(header);
+
+////////////////////////////////////////////////
+/////           Reveal Sections             ////
+////////////////////////////////////////////////
+
+const allSection = document.querySelectorAll('.section');
+
+const revealSection = function (entries, observer) {
+  const [entry] = entries;
+  // console.log(entry);
+
+  if (!entry.isIntersecting) return;
+
+  entry.target.classList.remove('section--hidden');
+
+  // Stop observing after first time
+  observer.unobserve(entry.target);
+};
+
+const sectionObserver = new IntersectionObserver(revealSection, {
+  root: null,
+  threshold: 0.15,
+});
+
+allSection.forEach(function (section) {
+  sectionObserver.observe(section);
+
+  // We add hodden class using js, because if user disabled js in their browser, then website is no mpre visible to them
+  section.classList.add('section--hidden');
+});
+
+////////////////////////////////////////////////
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 
@@ -96,7 +227,6 @@ document.querySelector('.nav__links').addEventListener('click', function (e) {
 // console.log(document.head);
 // console.log(document.body);
 
-const header = document.querySelector('.header');
 const allSections = document.querySelectorAll('.section');
 // console.log(allSections);
 
@@ -118,18 +248,18 @@ message.innerHTML =
 
 // insert created element to header
 // prepend add el as a first child, but append add as a last child
-header.prepend(message);
+// header.prepend(message);
 // header.append(message);
 // header.append(message.cloneNode(true)); //clone element and use it multipy times
 
 // header.before(message);
 // header.after(message);
 
-document
-  .querySelector('.btn--close--cookie')
-  .addEventListener('click', function () {
-    message.remove(); //remove el
-  });
+// document
+//   .querySelector('.btn--close--cookie')
+//   .addEventListener('click', function () {
+//     message.remove(); //remove el
+//   });
 
 /////////////////////////////////////////////////
 /////                Styles                  ////
@@ -171,7 +301,7 @@ logo.classList.toggle('c');
 logo.classList.contains('c'); // not includes
 
 // Don't Use, Overwrite existing classes and allow us to use only one class
-logo.className = 'Ramtin';
+// logo.className = 'Ramtin';
 
 ////////////////////////////////////////////////
 /////          Smooth scrolling             ////
@@ -328,4 +458,46 @@ document.querySelector('.nav').addEventListener(
   }
 });
 
+////////////////////////////////////////////////
+/////       Intersection Observer API       ////
+////////////////////////////////////////////////
+
+/*
+const obsCallback = function (entries, observer) {
+  entries.forEach(entry => {
+    console.log(entry);
+  });
+};
+
+const obsOptions = {
+  // set root to null, because we want to check entire viewport
+  root: null, //target element to intersect
+
+  // Percentage of intersection at which the observer callback will be called
+  // 0.1 means intersect when 10% of item is in the viewport
+  // threshold: 0.1,
+  threshold: [0, 0.2], // callback function just when go to into or out of the viewport
+  rootMargin: '-90px',  // Apply a box of 90px outside of a target element
+
+};
+
+const observer = new IntersectionObserver(obsCallback, obsOptions);
+observer.observe(section1);
+*/
+
+// _________________________________________________________
+
+// We can pass string instead of a obj to bind method
+let obj = {
+  name: 'Ramtin',
+};
+
+let hi = function () {
+  return `Hello ${this}`; // convrt this.name => thios
+};
+
+// let greeting2 = hi.bind(obj);
+let greeting = hi.bind('Ramtin');
+
+// console.log(greeting());
 // _________________________________________________________
