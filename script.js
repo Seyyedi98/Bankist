@@ -213,9 +213,145 @@ allSection.forEach(function (section) {
   sectionObserver.observe(section);
 
   // We add hodden class using js, because if user disabled js in their browser, then website is no mpre visible to them
-  section.classList.add('section--hidden');
+  // section.classList.add('section--hidden');
 });
 
+////////////////////////////////////////////////
+/////        Lazy loading iamges            ////
+////////////////////////////////////////////////
+
+// img[data-src] => select all img with data-scr attribute
+const imgTargets = document.querySelectorAll('img[data-src]');
+
+const loadImg = function (entries, observer) {
+  const [entry] = entries;
+  // console.log(entry);
+
+  if (!entry.isIntersecting) return;
+  // Replace the souece with data-src
+  entry.target.src = entry.target.dataset.src;
+
+  // It's not good idea to remove image blur immediately. In slow networks it's take too long to replace image. So user may see the old low res image
+  // entry.target.classList.remove('lazy-img');
+
+  // New event listener that waits for images to load, then remove blur effect
+  entry.target.addEventListener('load', function () {
+    entry.target.classList.remove('lazy-img');
+  });
+
+  observer.unobserve(entry.target);
+};
+
+const imgObserver = new IntersectionObserver(loadImg, {
+  root: null,
+  threshold: 0,
+  rootMargin: '-100px',
+});
+
+imgTargets.forEach(img => imgObserver.observe(img));
+
+////////////////////////////////////////////////
+/////               Slider                  ////
+////////////////////////////////////////////////
+const sliders = function () {
+  const slides = document.querySelectorAll('.slide');
+  const btnLeft = document.querySelector('.slider__btn--left');
+  const btnRight = document.querySelector('.slider__btn--right');
+  const dotContainer = document.querySelector('.dots');
+
+  let curSlide = 0;
+  const maxSlide = slides.length; // length of slides nodelist
+
+  const slider = document.querySelector('.slider');
+  // slider.style.transform = 'scale(0.5)';
+  // slider.style.overflow = 'visible';
+
+  // This code reolaced with goToSlide(0);
+  // slides.forEach(
+  //   (slide, index) => (slide.style.transform = `translateX(${100 * index}%)`)
+  // );
+
+  // Functions
+  const createDots = function () {
+    slides.forEach(function (_, i) {
+      dotContainer.insertAdjacentHTML(
+        'beforeend',
+        `<button class="dots__dot" data-slide="${i}"></button>`
+      );
+    });
+  };
+
+  const activateDot = function (slide) {
+    document
+      .querySelectorAll('.dots__dot')
+      .forEach(dot => dot.classList.remove('dots__dot--active'));
+
+    document
+      .querySelector(`.dots__dot[data-slide="${slide}"]`)
+      .classList.add('dots__dot--active');
+  };
+
+  const goToSlide = function (slide) {
+    slides.forEach(
+      (s, i) => (s.style.transform = `translateX(${100 * (i - slide)}%)`)
+    );
+
+    // slides.forEach((s, i) => console.log(100 * (i - slide)));
+  };
+
+  // Next slide
+  const nextSlide = function () {
+    if (curSlide === maxSlide - 1) {
+      curSlide = 0;
+    } else {
+      curSlide++;
+    }
+
+    goToSlide(curSlide);
+    activateDot(curSlide);
+  };
+
+  // Prev slide
+  const prevSlide = function () {
+    if (curSlide === 0) {
+      curSlide = maxSlide - 1;
+    } else {
+      curSlide--;
+    }
+
+    goToSlide(curSlide);
+    activateDot(curSlide);
+  };
+
+  const init = function () {
+    createDots();
+    goToSlide(0);
+    activateDot(0);
+  };
+
+  init();
+
+  // Event hadlers
+  btnRight.addEventListener('click', nextSlide);
+  btnLeft.addEventListener('click', prevSlide);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') prevSlide();
+    e.key === 'ArrowRight' && nextSlide();
+  });
+
+  dotContainer.addEventListener('click', function (e) {
+    if (e.target.classList.contains('dots__dot')) {
+      // const slide = e.target.dataset.slide;
+      const { slide } = e.target.dataset; // get data-slide
+
+      goToSlide(slide);
+      activateDot(slide);
+    }
+  });
+};
+
+sliders();
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -485,6 +621,62 @@ const observer = new IntersectionObserver(obsCallback, obsOptions);
 observer.observe(section1);
 */
 
+////////////////////////////////////////////////
+/////               Slider                  ////
+////////////////////////////////////////////////
+
+/*
+const slides = document.querySelectorAll('.slide');
+const btnLeft = document.querySelector('.slider__btn--left');
+const btnRight = document.querySelector('.slider__btn--right');
+
+let curSlide = 0;
+const maxSlide = slides.length; // length of slides nodelist
+
+const slider = document.querySelector('.slider');
+// slider.style.transform = 'scale(0.5)';
+// slider.style.overflow = 'visible';
+
+// This code reolaced with goToSlide(0);
+// slides.forEach(
+//   (slide, index) => (slide.style.transform = `translateX(${100 * index}%)`)
+// );
+
+const goToSlide = function (slide) {
+  slides.forEach(
+    (s, i) => (s.style.transform = `translateX(${100 * (i - slide)}%)`)
+  );
+
+  // slides.forEach((s, i) => console.log(100 * (i - slide)));
+};
+goToSlide(0);
+
+// Next slide
+const nextSlide = function () {
+  if (curSlide === maxSlide - 1) {
+    curSlide = 0;
+  } else {
+    curSlide++;
+  }
+
+  goToSlide(curSlide);
+};
+
+// Prev slide
+const prevSlide = function () {
+  if (curSlide === 0) {
+    curSlide = maxSlide - 1;
+  } else {
+    curSlide--;
+  }
+
+  goToSlide(curSlide);
+};
+
+btnRight.addEventListener('click', nextSlide);
+btnLeft.addEventListener('click', prevSlide);
+
+*/
 // _________________________________________________________
 
 // We can pass string instead of a obj to bind method
