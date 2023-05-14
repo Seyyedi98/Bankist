@@ -323,6 +323,10 @@ const sliders = function () {
     activateDot(curSlide);
   };
 
+  const changeSlideTimer = setInterval(function () {
+    nextSlide();
+  }, 7000);
+
   const init = function () {
     createDots();
     goToSlide(0);
@@ -693,3 +697,7 @@ let greeting = hi.bind('Ramtin');
 
 // console.log(greeting());
 // _________________________________________________________
+
+window.addEventListener('load', function (e) {
+  console.log('Page fully loaded', e);
+});
